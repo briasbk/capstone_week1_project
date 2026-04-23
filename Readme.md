@@ -1,15 +1,3 @@
-Here is a **professionally refined AWS portfolio version** of your README. I improved:
-
-* Structure (more enterprise-style)
-* Clarity and flow
-* Reduced repetition
-* Stronger technical framing (what AWS reviewers expect)
-* Cleaner sections for portfolio presentation
-
-You can copy-paste directly:
-
----
-
 # Capstone Project: Hybrid Cloud-Native Application on AWS
 
 ## Overview
