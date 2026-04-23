@@ -69,8 +69,8 @@ User → API Gateway → Lambda → CloudWatch Logs
 ### 1. Clone Repository
 
 ```bash
-git clone <your-repo-url>
-cd <repo-name>
+git clone https://github.com/briasbk/capstone_week1_project.git
+cd capstone_week1_project
 ```
 
 ---
@@ -215,7 +215,7 @@ curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" 
 
 ### CloudWatch Logs
 
-<img src="screenshots/CloudWatch-logs.png" width="750"/>
+<img src="screenshots/CLoudWatch-logs.png" width="750"/>
 
 ### CloudWatch Dashboard
 
