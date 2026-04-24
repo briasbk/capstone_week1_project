@@ -45,7 +45,7 @@ This project is built on four layers that together form a complete cloud-native 
 ├── screenshots/                # Evidence of working deployment
 │   ├── ECS-running-on-browser.png
 │   ├── API-gateway-response.png
-│   ├── CLoudWatch-logs.png
+│   ├── CloudWatch-logs.png
 │   └── CloudWatch-Dashboards.png
 └── README.md
 ```
