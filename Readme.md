@@ -1,49 +1,34 @@
-# Capstone Project: Hybrid Cloud-Native Application on AWS
+# Capstone Project: Serverless API & Containerized Web App on AWS
 
-## Overview
-
-This project demonstrates a production-style hybrid cloud-native architecture on AWS, integrating containerized workloads, serverless computing, infrastructure as code, and observability.
+> **Week 1 Capstone** - A hybrid cloud-native application combining a Serverless REST API, a Containerized Web App deployed via Infrastructure as Code, and full observability through Amazon CloudWatch.
 
 ---
 
-## Architecture
+## Table of Contents
 
-The solution is composed of four core layers:
-
-### 1. Infrastructure as Code
-
-* AWS CloudFormation provisions the entire ECS infrastructure
-* Includes VPC, networking, ECS cluster, and service configuration
-
-### 2. Containerized Application
-
-* A lightweight web application built using Docker
-* Image stored in Amazon ECR
-* Deployed on Amazon ECS using Fargate (serverless containers)
-
-### 3. Serverless API Layer
-
-* AWS Lambda processes incoming requests
-* Amazon API Gateway exposes a REST endpoint (`POST /submit`)
-* Handles JSON payloads and returns structured responses
-
-### 4. Observability
-
-* Amazon CloudWatch Logs captures Lambda execution logs
-* CloudWatch Dashboard visualizes:
-
-  * Lambda invocations
-  * Lambda errors
+1. [Architecture Overview](#architecture-overview)
+2. [Project Structure](#project-structure)
+3. [Prerequisites](#prerequisites)
+4. [Step 1 - Build & Push Docker Image to ECR](#step-1---build-push-docker-image-to-ecr)
+5. [Step 2 - Deploy Infrastructure with CloudFormation](#step-2---deploy-infrastructure-with-cloudformation)
+6. [Step 3 - Deploy the Lambda Function](#step-3---deploy-the-lambda-function)
+7. [Step 4 - Configure API Gateway](#step-4---configure-api-gateway)
+8. [Step 5 - Test the API](#step-5---test-the-api)
+9. [Step 6 - Verify Observability (CloudWatch)](#step-6---verify-observability-cloudwatch)
+10. [Screenshots](#screenshots)
 
 ---
 
-## Architecture Diagram
+## Architecture Overview
 
-```
-User → API Gateway → Lambda → CloudWatch Logs
-     → ECS (Fargate Web App) → ECR Image
-     → CloudFormation (Infrastructure Provisioning)
-```
+This project is built on four layers that together form a complete cloud-native solution:
+
+| Layer | Service | Role |
+|---|---|---|
+| Infrastructure as Code | AWS CloudFormation | Provisions VPC, networking, ECS Cluster & Service |
+| Containerized App | Amazon ECS (Fargate) + ECR | Hosts and serves the web application |
+| Serverless API | AWS Lambda + API Gateway | Handles `POST /submit` requests and logs payloads |
+| Observability | Amazon CloudWatch | Captures logs and visualizes Lambda metrics |
 
 ---
 
@@ -51,90 +36,95 @@ User → API Gateway → Lambda → CloudWatch Logs
 
 ```
 .
-├── infrastructure.yml
+├── infrastructure.yml          # CloudFormation template (VPC, ECS Cluster, Service, IAM)
 ├── lambda-api/
-│   └── index.js
+│   └── index.js                # Lambda function - handles POST /submit
 ├── webapp/
-│   ├── Dockerfile
-│   └── index.html
+│   ├── Dockerfile              # Nginx-based container definition
+│   └── index.html              # Web application served by ECS
+├── screenshots/                # Evidence of working deployment
+│   ├── ECS-running-on-browser.png
+│   ├── API-gateway-response.png
+│   ├── CLoudWatch-logs.png
+│   └── CloudWatch-Dashboards.png
 └── README.md
 ```
 
 ---
 
-## Deployment Guide
+## Prerequisites
 
-### 1. Clone Repository
+Before deploying, make sure you have the following ready:
 
-```bash
-git clone https://github.com/briasbk/capstone_week1_project.git
-cd capstone_week1_project
-```
-
----
-
-### 2. Build and Push Docker Image to ECR
-
-#### Build Image
-
-```bash
-docker build -t capstone-webapp ./webapp
-```
-
-#### Authenticate to ECR
-
-```bash
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
-```
-
-#### Tag Image
-
-```bash
-docker tag capstone-webapp:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/capstone-webapp:latest
-```
-
-#### Push Image
-
-```bash
-docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/capstone-webapp:latest
-```
+- An **AWS account** with sufficient permissions (IAM, ECS, ECR, Lambda, API Gateway, CloudFormation, CloudWatch)
+- **AWS CLI** installed and configured (`aws configure`)
+- **Docker** installed and running locally
+- An **Amazon ECR repository** created for the web app image
 
 ---
 
-### 3. Deploy Infrastructure (CloudFormation)
+## Step 1 - Build & Push Docker Image to ECR
 
-* Open AWS CloudFormation Console
-* Create a new stack
-* Upload `infrastructure.yml`
-* Enter stack name: `capstone-ecs`
+Build the Docker image from the `webapp/` directory and push it to Amazon ECR so ECS can pull it during deployment.
 
-Wait for status: **CREATE_COMPLETE**
+```bash
+# 1. Build the image locally
+docker build -t capstone-week1 ./webapp
+
+# 2. Authenticate Docker to your ECR registry
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin <your-account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+# 3. Tag the image with your ECR repository URI
+docker tag capstone-week1:latest \
+  <your-account-id>.dkr.ecr.us-east-1.amazonaws.com/capstone-week1:latest
+
+# 4. Push the image to ECR
+docker push <your-account-id>.dkr.ecr.us-east-1.amazonaws.com/capstone-week1:latest
+```
+
+> Replace `<your-account-id>` with your actual 12-digit AWS account ID.
 
 ---
 
-### 4. Access ECS Web Application
+## Step 2 - Deploy Infrastructure with CloudFormation
 
-* Navigate to ECS Console
-* Open cluster → Tasks
-* Select running task
-* Copy public IP
+The `infrastructure.yml` template provisions the complete networking and ECS stack:
 
-Open in browser:
+- Custom **VPC** with public subnet, Internet Gateway, and route table
+- **Security Group** allowing inbound HTTP (port 80)
+- **IAM Task Execution Role** with the `AmazonECSTaskExecutionRolePolicy` managed policy
+- **ECS Cluster**, **Task Definition** (256 CPU / 512 MB, Fargate), and **ECS Service** (1 desired task)
 
-```
-http://<public-ip>
-```
+**To deploy:**
+
+1. Open the [AWS CloudFormation Console](https://console.aws.amazon.com/cloudformation)
+2. Click **Create stack → With new resources**
+3. Upload `infrastructure.yml`
+4. Set stack name: `capstone-ecs`
+5. Click through and **Create stack**
+
+Wait until the stack status shows **CREATE_COMPLETE**.
+
+**To find the running app URL:**
+
+1. Go to **ECS Console → Clusters → CapstoneCluster → Tasks**
+2. Click the running task
+3. Copy the **Public IP** under the Network section
+4. Open `http://<public-ip>` in your browser
 
 ---
 
-### 5. Lambda Function Setup
+## Step 3 - Deploy the Lambda Function
 
-Create a Lambda function using Node.js runtime:
+The Lambda function (`lambda-api/index.js`) accepts a JSON POST body, logs the payload to CloudWatch, and returns a unique submission ID.
 
 ```js
 exports.handler = async (event) => {
+    // Log the incoming request body to CloudWatch Logs
     console.log("Received data:", event.body);
 
+    // Generate a random submission ID
     const submissionId = Math.random().toString(36).substring(2, 10);
 
     return {
@@ -148,77 +138,103 @@ exports.handler = async (event) => {
 };
 ```
 
+**To deploy:**
+
+1. Go to **AWS Lambda Console → Create function**
+2. Select **Author from scratch**
+3. Runtime: **Node.js 20.x**
+4. Function name: `capstone-submit-handler`
+5. After creation, paste the code from `lambda-api/index.js` into the inline editor (or upload as a `.zip`)
+6. Click **Deploy**
+
 ---
 
-### 6. API Gateway Configuration
+## Step 4 - Configure API Gateway
 
-* Create REST API
-* Create resource: `/submit`
-* Create method: `POST`
-* Enable Lambda Proxy Integration
-* Deploy to stage: `prod`
+Create a REST API that routes `POST /submit` requests to the Lambda function.
+
+1. Go to **API Gateway Console → Create API → REST API**
+2. API name: `capstone-api`
+3. Create a resource: `/submit`
+4. Create a method on `/submit`:
+   - Method type: **POST**
+   - Integration type: **Lambda Function**
+   - Enable **Lambda Proxy Integration**
+   - Select your `capstone-submit-handler` function
+5. Click **Deploy API**:
+   - Create a new stage named `prod`
+6. Copy the **Invoke URL** - it will look like:
+   ```
+   https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit
+   ```
 
 ---
 
-### 7. Test API
+## Step 5 - Test the API
+
+Use `curl` or any API client (e.g., Postman) to send a test POST request:
 
 ```bash
 curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" \
--H "Content-Type: application/json" \
--d "{\"name\":\"test\"}"
+  -H "Content-Type: application/json" \
+  -d '{"name": "test", "message": "Hello from ECS!"}'
+```
+
+**Expected response:**
+
+```json
+{
+  "message": "Data successfully received and logged!",
+  "id": "a3f9c12b"
+}
 ```
 
 ---
 
-### 8. Observability (CloudWatch)
+## Step 6 - Verify Observability (CloudWatch)
 
-#### Logs
+### Lambda Logs
 
-* Navigate to CloudWatch Logs
-* Open Lambda log group
-* Verify incoming request payloads
+1. Go to **CloudWatch Console → Log groups**
+2. Open `/aws/lambda/capstone-submit-handler`
+3. Click a recent log stream and confirm you can see `Received data: {...}` entries
 
-#### Dashboard
+### CloudWatch Dashboard
 
-* Create CloudWatch Dashboard
-* Add widgets:
-
-  * Lambda Invocations
-  * Lambda Errors
-
----
-
-## Validation Results
-
-* ECS Fargate service successfully running and accessible via public IP
-* API Gateway successfully triggering Lambda function
-* CloudWatch logs confirming request payload processing
-* Dashboard displaying operational metrics
+1. Go to **CloudWatch Console → Dashboards → Create dashboard**
+2. Name it `CapstoneMonitoring`
+3. Add widgets:
+   - **Lambda Invocations** - metric: `AWS/Lambda → Invocations` filtered to `capstone-submit-handler`
+   - **Lambda Errors** - metric: `AWS/Lambda → Errors` filtered to `capstone-submit-handler`
+4. Save the dashboard
 
 ---
 
 ## Screenshots
 
-### ECS Web Application
+### ECS Web Application Running in Browser
 
 <img src="screenshots/ECS-running-on-browser.png" width="750"/>
 
-### API Gateway Response
+### API Gateway - Successful POST /submit Response
 
 <img src="screenshots/API-gateway-response.png" width="750"/>
 
-### CloudWatch Logs
+### CloudWatch Logs - Lambda Payload Logging
 
 <img src="screenshots/CLoudWatch-logs.png" width="750"/>
 
-### CloudWatch Dashboard
+### CloudWatch Dashboard - Lambda Invocations & Errors
 
 <img src="screenshots/CloudWatch-Dashboards.png" width="750"/>
 
 ---
 
-## Conclusion
+## What Was Built
 
-This project demonstrates a complete end-to-end cloud-native architecture on AWS, combining serverless and container-based computing models.
+This capstone demonstrates a complete end-to-end cloud-native architecture on AWS:
 
----
+- **CloudFormation** fully automates the provisioning of all networking and ECS resources - no manual console clicks required for infrastructure
+- **Docker + ECR + ECS Fargate** delivers a containerized web app without managing any servers
+- **Lambda + API Gateway** provides a scalable, event-driven API backend that costs nothing at idle
+- **CloudWatch** gives full visibility into Lambda execution, errors, and invocation trends through logs and a live dashboard
