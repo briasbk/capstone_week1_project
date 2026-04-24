@@ -99,7 +99,7 @@ The `infrastructure.yml` template provisions the complete networking and ECS sta
 **To deploy:**
 
 1. Open the [AWS CloudFormation Console](https://console.aws.amazon.com/cloudformation)
-2. Click **Create stack → With new resources**
+2. Click **Create stack -> With new resources**
 3. Upload `infrastructure.yml`
 4. Set stack name: `capstone-ecs`
 5. Click through and **Create stack**
@@ -108,7 +108,7 @@ Wait until the stack status shows **CREATE_COMPLETE**.
 
 **To find the running app URL:**
 
-1. Go to **ECS Console → Clusters → CapstoneCluster → Tasks**
+1. Go to **ECS Console -> Clusters -> CapstoneCluster -> Tasks**
 2. Click the running task
 3. Copy the **Public IP** under the Network section
 4. Open `http://<public-ip>` in your browser
@@ -140,7 +140,7 @@ exports.handler = async (event) => {
 
 **To deploy:**
 
-1. Go to **AWS Lambda Console → Create function**
+1. Go to **AWS Lambda Console -> Create function**
 2. Select **Author from scratch**
 3. Runtime: **Node.js 20.x**
 4. Function name: `capstone-submit-handler`
@@ -153,7 +153,7 @@ exports.handler = async (event) => {
 
 Create a REST API that routes `POST /submit` requests to the Lambda function.
 
-1. Go to **API Gateway Console → Create API → REST API**
+1. Go to **API Gateway Console -> Create API -> REST API**
 2. API name: `capstone-api`
 3. Create a resource: `/submit`
 4. Create a method on `/submit`:
@@ -175,9 +175,7 @@ Create a REST API that routes `POST /submit` requests to the Lambda function.
 Use `curl` or any API client (e.g., Postman) to send a test POST request:
 
 ```bash
-curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "test", "message": "Hello from ECS!"}'
+curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" -H "Content-Type: application/json" -d "{\"name\":\"test\"}"
 ```
 
 **Expected response:**
@@ -195,17 +193,17 @@ curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" 
 
 ### Lambda Logs
 
-1. Go to **CloudWatch Console → Log groups**
+1. Go to **CloudWatch Console -> Log groups**
 2. Open `/aws/lambda/capstone-submit-handler`
 3. Click a recent log stream and confirm you can see `Received data: {...}` entries
 
 ### CloudWatch Dashboard
 
-1. Go to **CloudWatch Console → Dashboards → Create dashboard**
+1. Go to **CloudWatch Console -> Dashboards -> Create dashboard**
 2. Name it `CapstoneMonitoring`
 3. Add widgets:
-   - **Lambda Invocations** - metric: `AWS/Lambda → Invocations` filtered to `capstone-submit-handler`
-   - **Lambda Errors** - metric: `AWS/Lambda → Errors` filtered to `capstone-submit-handler`
+   - **Lambda Invocations** - metric: `AWS/Lambda -> Invocations` filtered to `capstone-submit-handler`
+   - **Lambda Errors** - metric: `AWS/Lambda -> Errors` filtered to `capstone-submit-handler`
 4. Save the dashboard
 
 ---
@@ -222,7 +220,7 @@ curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" 
 
 ### CloudWatch Logs - Lambda Payload Logging
 
-<img src="screenshots/CLoudWatch-logs.png" width="750"/>
+<img src="screenshots/CloudWatch-logs.png" width="750"/>
 
 ### CloudWatch Dashboard - Lambda Invocations & Errors
 
