@@ -4,8 +4,6 @@
 
 This project demonstrates a production-style hybrid cloud-native architecture on AWS, integrating containerized workloads, serverless computing, infrastructure as code, and observability.
 
-It showcases how modern applications can be built using loosely coupled AWS services to achieve scalability, reliability, and operational visibility.
-
 ---
 
 ## Architecture
@@ -110,11 +108,7 @@ docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/capstone-webapp:latest
 * Upload `infrastructure.yml`
 * Enter stack name: `capstone-ecs`
 
-Wait for status:
-
-```
-CREATE_COMPLETE
-```
+Wait for status: **CREATE_COMPLETE**
 
 ---
 
@@ -223,17 +217,8 @@ curl -X POST "https://<api-id>.execute-api.us-east-1.amazonaws.com/prod/submit" 
 
 ---
 
-## Key Learnings
-
-* Infrastructure as Code using AWS CloudFormation
-* Containerization and deployment using Docker and ECS Fargate
-* Serverless API design using Lambda and API Gateway
-* Cloud-native observability using CloudWatch
-
----
-
 ## Conclusion
 
-This project demonstrates a complete end-to-end cloud-native architecture on AWS, combining serverless and container-based computing models. It reflects real-world cloud engineering practices for scalable and observable systems.
+This project demonstrates a complete end-to-end cloud-native architecture on AWS, combining serverless and container-based computing models.
 
 ---
